@@ -1,0 +1,59 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+const App = () => {
+  const [recipes, setRecipes] = useState([]);
+  const [newRecipe, setNewRecipe] = useState({
+    title: "",
+    ingredients: "",
+    instructions: "",
+    imageUrl: "",
+  });
+
+  useEffect(() => {
+    axios.get("/api/recipes")  // No need for localhost if using proxy
+      .then(res => setRecipes(res.data))
+      .catch(err => console.log(err));
+  }, []);
+
+  const handleChange = (e) => {
+    setNewRecipe({ ...newRecipe, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    axios.post("/api/recipes", {
+      ...newRecipe,
+      ingredients: newRecipe.ingredients.split(","),
+    }).then(res => setRecipes([...recipes, res.data]));
+  };
+
+  return (
+    <div>
+      <h1>Recipe App</h1>
+      
+      <form onSubmit={handleSubmit}>
+        <input name="title" placeholder="Title" onChange={handleChange} />
+        <input name="ingredients" placeholder="Ingredients (comma-separated)" onChange={handleChange} />
+        <input name="instructions" placeholder="Instructions" onChange={handleChange} />
+        <input name="imageUrl" placeholder="Image URL" onChange={handleChange} />
+        <button type="submit">Add Recipe</button>
+      </form>
+
+      <div>
+        {recipes.map(recipe => (
+          <div key={recipe._id}>
+            <h2>{recipe.title}</h2>
+            <img src={recipe.imageUrl} alt={recipe.title} width="200" />
+            <p>{recipe.instructions}</p>
+            <ul>
+              {recipe.ingredients.map((ing, index) => <li key={index}>{ing}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default App;
